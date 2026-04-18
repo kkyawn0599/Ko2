@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>韩语背词网站</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>韩语背词</h1>
+        </div>
+        <div class="navbar-center">
+            <ul>
+                <li><a href="#" class="nav-link active" data-page="study">背词中心</a></li>
+                <li><a href="#" class="nav-link" data-page="import">词书管理</a></li>
+                <li><a href="#" class="nav-link" data-page="profile">个人主页</a></li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <button id="loginBtn" class="login-btn">登录</button>
+            <button id="themeBtn" class="theme-btn">🎨</button>
+        </div>
+    </nav>
+
+    <!-- 页面容器 -->
+    <div class="page-container">
+        <!-- 背词页面 -->
+        <div id="study-page" class="page active">
+            <div class="study-header">
+                <div class="progress">
+                    <span id="wordProgress">1/10</span>
+                </div>
+                <div class="book-selector">
+                    <select id="studyBookSelect">
+                        <option value="默认词书">默认词书</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="word-card">
+                <div class="word-front">
+                    <h3 id="koreanWord">안녕하세요</h3>
+                    <button class="play-btn" id="playBtn">▶️</button>
+                </div>
+                <div class="word-back">
+                    <p id="chineseMeaning">你好</p>
+                    <p id="pronunciation">an-nyeong-ha-se-yo</p>
+                </div>
+            </div>
+            
+            <div class="word-actions">
+                <button id="knowBtn" class="action-btn know-btn">已会</button>
+                <button id="unknownBtn" class="action-btn unknown-btn">不太会</button>
+            </div>
+            
+            <div class="buttons">
+                <button id="prevBtn">上一个</button>
+                <button id="showBtn">显示答案</button>
+                <button id="nextBtn">下一个</button>
+            </div>
+            
+            <div class="voice-settings">
+                <label for="voiceSelect">选择音色：</label>
+                <select id="voiceSelect">
+                    <option value="female">女声</option>
+                    <option value="male">男声</option>
+                </select>
+                <label for="speedRange">语速：</label>
+                <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+            </div>
+        </div>
+
+        <!-- 导入单词页面 -->
+        <div id="import-page" class="page">
+            <h2>词书管理</h2>
+            
+            <div class="book-selection">
+                <label for="bookSelect">选择词书：</label>
+                <select id="bookSelect">
+                    <option value="默认词书">默认词书</option>
+                </select>
+                <button id="addBookBtn">添加词书</button>
+            </div>
+            
+            <div class="import-methods">
+                <button class="method-btn active" data-method="text">文本粘贴</button>
+                <button class="method-btn" data-method="file">文件导入</button>
+            </div>
+            
+            <div id="text-import" class="import-section">
+                <textarea id="wordInput" placeholder="请输入单词，格式：韩文,中文,发音（每行一个）"></textarea>
+                <button id="importBtn">导入</button>
+                <p class="hint">例如：안녕하세요,你好,an-nyeong-ha-se-yo</p>
+            </div>
+            
+            <div id="file-import" class="import-section" style="display: none;">
+                <input type="file" id="fileInput" accept=".txt,.csv">
+                <button id="importFileBtn">导入文件</button>
+                <p class="hint">支持TXT和CSV格式文件</p>
+            </div>
+            
+            <div class="sync-section">
+                <h3>跨设备同步</h3>
+                <button id="exportBtn">导出单词</button>
+                <button id="syncBtn">自动同步</button>
+                <p class="hint">点击"自动同步"按钮可以生成一个同步链接</p>
+            </div>
+            
+            <div class="word-list-section">
+                <div class="list-header">
+                    <h3>单词列表</h3>
+                    <button id="toggleListBtn">折叠/展开</button>
+                </div>
+                <div id="wordList" class="word-list"></div>
+            </div>
+        </div>
+
+        <!-- 个人主页 -->
+        <div id="profile-page" class="page">
+            <div class="profile-header">
+                <div class="cover-photo" id="coverPhoto"></div>
+                <div class="avatar-container">
+                    <img src="https://via.placeholder.com/100" alt="头像" id="avatar">
+                </div>
+            </div>
+            
+            <div class="profile-info">
+                <h2 id="nickname">用户名</h2>
+                <p id="username">@user</p>
+                <p id="bio">个性签名</p>
+                <p id="location">地区定位</p>
+                <button id="editProfileBtn">修改资料</button>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">连续打卡</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">掌握单词</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">学习天数</span>
+                </div>
+            </div>
+            
+            <div class="calendar-section">
+                <h3>打卡日历</h3>
+                <div id="calendar"></div>
+            </div>
+            
+            <div class="achievements-section">
+                <h3>成就徽章</h3>
+                <div id="achievements"></div>
+            </div>
+            
+            <div class="activity-section">
+                <h3>学习动态</h3>
+                <div id="activityList"></div>
+            </div>
+        </div>
+        
+        <!-- 资料编辑页面 -->
+        <div id="edit-profile-page" class="page">
+            <h2>修改资料</h2>
+            <div class="edit-profile-form">
+                <div class="form-group">
+                    <label>头像</label>
+                    <div class="avatar-upload">
+                        <img src="https://via.placeholder.com/100" alt="头像" id="editAvatar">
+                        <button id="uploadAvatarBtn">上传头像</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>封面照片</label>
+                    <div class="cover-upload">
+                        <div id="editCoverPhoto" style="height: 200px; background-color: #f0f0f0; border-radius: 8px;"></div>
+                        <button id="uploadCoverBtn">上传封面</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>昵称</label>
+                    <input type="text" id="editNickname" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label>个性签名</label>
+                    <textarea id="editBio" placeholder="请输入个性签名"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>地区定位</label>
+                    <input type="text" id="editLocation" placeholder="请输入地区">
+                </div>
+                <div class="form-actions">
+                    <button id="saveProfileBtn">保存</button>
+                    <button id="cancelEditBtn">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">登录</h2>
+                <button id="closeModalBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="loginForm">
+                    <input type="email" id="email" placeholder="邮箱">
+                    <input type="password" id="password" placeholder="密码">
+                    <label>
+                        <input type="checkbox" id="rememberMe"> 记住登录状态
+                    </label>
+                    <button id="submitLoginBtn">登录</button>
+                    <p class="switch-form">还没有账号？<a href="#" id="switchToRegister">立即注册</a></p>
+                </div>
+                <div id="registerForm" style="display: none;">
+                    <input type="email" id="regEmail" placeholder="邮箱">
+                    <input type="password" id="regPassword" placeholder="密码">
+                    <input type="text" id="regNickname" placeholder="昵称">
+                    <button id="submitRegisterBtn">注册</button>
+                    <p class="switch-form">已有账号？<a href="#" id="switchToLogin">立即登录</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主题选择模态框 -->
+    <div id="themeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择主题</h2>
+                <button id="closeThemeModalBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="theme-options">
+                    <div class="theme-item active" data-theme="pink">
+                        <div class="theme-color" style="background-color: #FFB6C1;"></div>
+                        <span>浅粉</span>
+                    </div>
+                    <div class="theme-item" data-theme="blue">
+                        <div class="theme-color" style="background-color: #ADD8E6;"></div>
+                        <span>浅蓝</span>
+                    </div>
+                    <div class="theme-item" data-theme="mint">
+                        <div class="theme-color" style="background-color: #98FF98;"></div>
+                        <span>薄荷</span>
+                    </div>
+                    <div class="theme-item" data-theme="purple">
+                        <div class="theme-color" style="background-color: #E6E6FA;"></div>
+                        <span>淡紫</span>
+                    </div>
+                    <div class="theme-item" data-theme="yellow">
+                        <div class="theme-color" style="background-color: #FFFFE0;"></div>
+                        <span>浅黄</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
