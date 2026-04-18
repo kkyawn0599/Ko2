@@ -513,13 +513,40 @@ body {
 
 .list-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 15px;
 }
 
 .list-header h3 {
   color: var(--accent-color);
+}
+
+.list-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+#wordCount {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+#wordSearch {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#wordSearch:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(244, 143, 177, 0.2);
 }
 
 #toggleListBtn {

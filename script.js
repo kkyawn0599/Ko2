@@ -87,6 +87,12 @@ function bindEventListeners() {
     });
   });
   
+  // 单词搜索
+  const wordSearch = document.getElementById('wordSearch');
+  if (wordSearch) {
+    wordSearch.addEventListener('input', updateWordList);
+  }
+  
   // 主题按钮
   document.getElementById('themeBtn').addEventListener('click', function() {
     document.getElementById('themeModal').classList.add('show');
@@ -752,11 +758,31 @@ function checkSyncData() {
 // 更新单词列表
 function updateWordList() {
   const wordList = document.getElementById('wordList');
-  wordList.innerHTML = '';
+  const wordCount = document.getElementById('wordCount');
+  const searchInput = document.getElementById('wordSearch');
   
   // 只显示当前词书的单词
-  const bookWords = words.filter(word => word.book === currentBook);
+  let bookWords = words.filter(word => word.book === currentBook);
   
+  // 应用搜索过滤
+  const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+  if (searchTerm) {
+    bookWords = bookWords.filter(word => 
+      word.korean.toLowerCase().includes(searchTerm) || 
+      word.chinese.toLowerCase().includes(searchTerm) ||
+      (word.pronunciation && word.pronunciation.toLowerCase().includes(searchTerm))
+    );
+  }
+  
+  // 更新单词数量
+  if (wordCount) {
+    wordCount.textContent = `${bookWords.length} 个单词`;
+  }
+  
+  // 清空单词列表
+  wordList.innerHTML = '';
+  
+  // 显示单词
   bookWords.forEach((word, index) => {
     const wordItem = document.createElement('div');
     wordItem.className = 'word-item';
